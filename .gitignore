@@ -1,0 +1,25 @@
+# Node
+node_modules/
+dist/
+.env
+npm-debug.log
+
+# React
+client-frontend/dist/
+client-frontend/node_modules/
+client-frontend/.env*
+
+# Java / Maven
+worker-service/target/
+.mvn/
+*.jar
+*.war
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
