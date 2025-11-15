@@ -1,15 +1,19 @@
 import axios from 'axios';
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Public API for login, register, refresh
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
 export const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // This is CRITICAL for sending the refresh token cookie
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // Important for cookies
 });
 
-// Private API instance (base for our interceptor hook)
 export const privateApi = axios.create({
   baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
   withCredentials: true,
-  headers: { 'Content-Type': 'application/json' },
 });

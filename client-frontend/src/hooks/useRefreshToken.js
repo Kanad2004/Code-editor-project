@@ -6,16 +6,12 @@ const useRefreshToken = () => {
 
   const refresh = async () => {
     const response = await api.post('/auth/refresh-token');
-    setAuth((prev) => {
-      // Update auth state with new access token
-      return {
-        ...prev,
-        user: response.data.user, // The API might send back user data
-        accessToken: response.data.accessToken,
-      };
-    });
-    return response.data.accessToken;
+    const { accessToken, user } = response.data.data;
+    
+    setAuth({ user, accessToken });
+    return accessToken;
   };
+
   return refresh;
 };
 
