@@ -1,12 +1,12 @@
 package com.judge.workerservice.dto;
 
-// This record MUST match the JSON payload from the Node.js publisher
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record SubmissionJob(
-        String submissionId,
-        String problemId,
-        String sourceCode,
-        String language,
-        int timeLimit,    // in seconds
-        int memoryLimit   // in MB
-) {
-}
+    @JsonProperty("submission_id") String submissionId,
+    @JsonProperty("problem_id") String problemId,
+    @JsonProperty("source_code") String sourceCode,
+    @JsonProperty("language") String language,
+    @JsonProperty("time_limit") Integer timeLimit,
+    @JsonProperty("memory_limit") Integer memoryLimit
+) {}
