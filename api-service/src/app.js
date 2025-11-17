@@ -50,8 +50,8 @@ app.use("/api/submissions", submissionRouter);
 app.use("/api/users", userRouter);
 app.use("/api/leaderboard", leaderboardRouter);
 
-// 404 handler
-app.use("*", (req, res) => {
+// 404 handler - must be AFTER all other routes
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,

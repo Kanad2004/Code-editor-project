@@ -1,6 +1,7 @@
 export const SUBMISSION_QUEUE = process.env.SUBMISSION_QUEUE || "submission_queue";
 export const TEST_QUEUE = process.env.TEST_QUEUE || "test_queue";
 
+export const DB_NAME = "code_judge";
 export const SUBMISSION_STATUS = {
   PENDING: "Pending",
   JUDGING: "Judging",

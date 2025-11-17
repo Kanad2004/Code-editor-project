@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 // General API rate limiter
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 100,
   message: "Too many requests from this IP, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
@@ -14,16 +14,13 @@ export const apiLimiter = rateLimit({
 });
 
 // Stricter rate limiter for submissions
+// Note: This will rate limit by IP address for all authenticated users
 export const submissionRateLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 5, // 5 submissions per minute per user
+  max: 5, // 5 submissions per minute
   message: "Too many submissions, please wait before submitting again",
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    // Rate limit per user, not IP
-    return req.user?._id?.toString() || req.ip;
-  },
   handler: (req, res) => {
     throw new ApiError(
       429, 
@@ -35,11 +32,11 @@ export const submissionRateLimiter = rateLimit({
 // Auth rate limiter (login/register)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per 15 minutes
+  max: 10,
   message: "Too many authentication attempts, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // Don't count successful requests
+  skipSuccessfulRequests: true,
   handler: (req, res) => {
     throw new ApiError(429, "Too many login attempts, please try again later");
   },
