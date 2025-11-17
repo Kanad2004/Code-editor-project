@@ -7,10 +7,13 @@ import jwt from "jsonwebtoken";
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
 
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
+  
   if ([username, email, password].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
   }
@@ -22,16 +25,18 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const user = await User.create({
     username: username.toLowerCase(),
-    email,
+    email: email.toLowerCase(),
     password,
   });
+
+  const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
   return res
     .status(201)
     .json(
       new ApiResponse(
         201,
-        { _id: user._id, email: user.email },
+        createdUser,
         "User registered successfully"
       )
     );
@@ -39,7 +44,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  
+  if (!email || !password) {
+    throw new ApiError(400, "Email and password are required");
+  }
+  
+  const user = await User.findOne({ email: email.toLowerCase() });
   if (!user) {
     throw new ApiError(404, "User does not exist");
   }
@@ -55,20 +65,28 @@ const loginUser = asyncHandler(async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
 
+  const loggedInUser = {
+    _id: user._id,
+    email: user.email,
+    username: user.username,
+    created_at: user.createdAt
+  };
+
   return res
     .status(200)
     .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
         200,
-        { accessToken, user: { _id: user._id, email: user.email, username: user.username } },
+        { accessToken, user: loggedInUser },
         "User logged in successfully"
       )
     );
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookies.refreshToken;
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request: No refresh token");
   }
@@ -100,7 +118,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { accessToken: newAccessToken },
+          { accessToken: newAccessToken, user: { _id: user._id, email: user.email, username: user.username } },
           "Access token refreshed"
         )
       );
@@ -110,24 +128,24 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  // req.user is attached by verifyJWT middleware
   await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { refreshToken: undefined } },
+    { $unset: { refreshToken: 1 } },
     { new: true }
   );
 
   return res
     .status(200)
     .clearCookie("refreshToken", cookieOptions)
-    .json(new ApiResponse(200, {}, "User logged out"));
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
 const getMe = asyncHandler(async (req, res) => {
-  // req.user is already attached by verifyJWT
+  const user = await User.findById(req.user._id).select("-password -refreshToken");
+  
   return res
     .status(200)
-    .json(new ApiResponse(200, req.user, "User details fetched successfully"));
+    .json(new ApiResponse(200, user, "User details fetched successfully"));
 });
 
 export { registerUser, loginUser, logoutUser, refreshAccessToken, getMe };

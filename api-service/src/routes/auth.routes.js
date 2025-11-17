@@ -7,11 +7,12 @@ import {
   getMe,
 } from "../controllers/auth.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { validateRegister, validateLogin } from "../middlewares/validation.middleware.js";
 
 const router = Router();
 
-router.route("/register").post(registerUser);
-router.route("/login").post(loginUser);
+router.route("/register").post(validateRegister, registerUser);
+router.route("/login").post(validateLogin, loginUser);
 router.route("/refresh-token").post(refreshAccessToken);
 
 // Secure routes

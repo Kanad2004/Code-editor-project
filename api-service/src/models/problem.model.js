@@ -17,18 +17,35 @@ const problemSchema = new Schema(
     title: { type: String, required: true, unique: true },
     slug: { type: String, unique: true, index: true },
     description: { type: String, required: true },
-    difficulty: { type: String, enum: ["Easy", "Medium", "Hard"], required: true },
-    time_limit: { type: Number, required: true, default: 2 }, // Time in seconds
-    memory_limit: { type: Number, required: true, default: 256 }, // Memory in MB
+    difficulty: { 
+      type: String, 
+      enum: ["Easy", "Medium", "Hard"], 
+      required: true 
+    },
+    time_limit: { type: Number, required: true, default: 5 }, // seconds
+    memory_limit: { type: Number, required: true, default: 256 }, // MB
     sample_cases: [sampleCaseSchema],
     hidden_test_cases: {
       type: [testCaseSchema],
       required: true,
-      select: false, // --- CRITICAL: Hide from API responses by default
+      select: false, // Hide from API responses
     },
+    tags: [{ type: String }], // e.g., ["arrays", "dynamic-programming"]
+    total_submissions: { type: Number, default: 0 },
+    accepted_submissions: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
+
+// Virtual field for acceptance rate
+problemSchema.virtual('acceptance_rate').get(function() {
+  if (this.total_submissions === 0) return 0;
+  return ((this.accepted_submissions / this.total_submissions) * 100).toFixed(1);
+});
+
+// Ensure virtuals are included in JSON
+problemSchema.set('toJSON', { virtuals: true });
+problemSchema.set('toObject', { virtuals: true });
 
 // Pre-save hook to generate slug
 problemSchema.pre("save", function (next) {
