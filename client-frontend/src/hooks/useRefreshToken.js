@@ -5,11 +5,20 @@ const useRefreshToken = () => {
   const { setAuth } = useAuth();
 
   const refresh = async () => {
-    const response = await api.post('/auth/refresh-token');
-    const { accessToken, user } = response.data.data;
-    
-    setAuth({ user, accessToken });
-    return accessToken;
+    try {
+      const response = await api.post('/auth/refresh-token');
+      const { accessToken, user } = response.data.data;
+      
+      // Update auth context (will auto-save to localStorage)
+      setAuth({ user, accessToken });
+      
+      return accessToken;
+    } catch (error) {
+      // If refresh fails, clear auth and redirect to login
+      setAuth({});
+      localStorage.removeItem('auth');
+      throw error;
+    }
   };
 
   return refresh;

@@ -18,6 +18,9 @@ const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function App() {
+
+
+  
   return (
     <ErrorBoundary>
       <Toaster 
